@@ -151,7 +151,7 @@ class Lirr():
 			'ToStation': to_station,
 			'RequestDate': time.strftime('%m/%d/%Y'),
 			'RequestTime': time.strftime('%I:%M'),
-			'RequestAMPM': time.strftime('%A'),
+			'RequestAMPM': time.strftime('%p'),
 			'sortBy': 1,
 			'schedules': 'Schedules'
 		}
