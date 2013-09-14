@@ -168,8 +168,12 @@ class Lirr():
 
 		# Extract the departure, arrival times from response
 		soup = BeautifulSoup(r.content)
-		station_links = soup.find('table', {'style': 'width:100%;'}).findAll('a')[0:2]
-		label = '%s to %s' % (station_links[0].text.strip(), station_links[1].text.strip())
+
+		station_links = soup.find('table', {'style': 'width:100%;'}) \
+			.findAll('a')[0:2]
+
+		label = '%s to %s' % (station_links[0].text.strip(), 
+			station_links[1].text.strip())
 
 		tag_params = {'class': 'schedulesTD', 
 			'style': 'text-align:right; width=60px;'
