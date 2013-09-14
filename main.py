@@ -137,10 +137,16 @@ class Lirr():
 		pass
 
 	def get_stations(self):
+		"""
+		Fetches list of LIRR train stations
+		"""
 		for id, name in self.stations.iteritems():
 			print id, name
 
 	def get_times(self, from_station, to_station):
+		"""
+		Fetches upcoming LIRR train times
+		"""
 		# These get populated later on
 		depart_times = []
 		arrive_times = []
