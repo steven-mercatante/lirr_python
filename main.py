@@ -3,6 +3,10 @@ import requests
 import time
 from bs4 import BeautifulSoup
 
+# Todos:
+# catch and report invalid station combos
+# ensure from, to station ids are valid
+
 class Lirr():
 
 	def __init__(self):
@@ -164,6 +168,9 @@ class Lirr():
 
 		# Extract the departure, arrival times from response
 		soup = BeautifulSoup(r.content)
+		station_links = soup.find('table', {'style': 'width:100%;'}).findAll('a')[0:2]
+		label = '%s to %s' % (station_links[0].text.strip(), station_links[1].text.strip())
+
 		tag_params = {'class': 'schedulesTD', 
 			'style': 'text-align:right; width=60px;'
 		}
@@ -173,7 +180,9 @@ class Lirr():
 			else:
 				arrive_times.append(node.find(text=True))
 
-		return ' | '.join(depart_times)
+		output = label + ': '
+		output += ' | '.join(depart_times)
+		return output
 
 	def get_altered_time(self):
 		"""
