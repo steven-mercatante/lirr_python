@@ -1,8 +1,8 @@
 import argparse
 import requests
 import time
-from bs4 import BeautifulSoup
 import sys
+from bs4 import BeautifulSoup
 
 # Todos:
 # catch and report invalid station combos
@@ -139,9 +139,12 @@ class Lirr():
 			78: 'Yaphank'
 		}
 
-	def get_stations(self):
+		self.routes_methods = ['list', 'add', 'del', 'def']
+
+
+	def show_stations(self):
 		"""
-		Fetches list of LIRR train stations
+		Prints list of LIRR train stations
 		"""
 		for id, name in self.stations.iteritems():
 			print id, name
@@ -150,10 +153,6 @@ class Lirr():
 		"""
 		Fetches upcoming LIRR train times
 		"""
-		# These get populated later on
-		depart_times = []
-		arrive_times = []
-
 		# Query LIRR for times
 		alt_time = self.get_altered_time()
 		payload = {
@@ -176,6 +175,8 @@ class Lirr():
 		label = '%s to %s' % (station_links[0].text.strip(), 
 			station_links[1].text.strip())
 
+		depart_times = []
+		arrive_times = []
 		tag_params = {'class': 'schedulesTD', 
 			'style': 'text-align:right; width=60px;'
 		}
@@ -198,14 +199,29 @@ class Lirr():
 		t = time.time() + 3600
 		return time.localtime(t)
 
+class RouteManager():
+	def list():
+		pass
+
+	def add():
+		pass
+
+	def delete():
+		pass
+
+	def default():
+		pass
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-s', '--stations', action='store_true', default=False,
+	parser.add_argument('-s', '--stations', dest='show_stations', 
+		action='store_true', default=False,
 		help='Shows list of stations')
 	parser.add_argument('-f', '--from', dest='from_station', type=int, 
 		help='The station to depart from')
 	parser.add_argument('-t', '--to', dest='to_station', type=int, 
 		help='The station to arrive at')
+	parser.add_argument('--routes', default=False, nargs='+')
 	args = parser.parse_args()	
 
 	if args.from_station and not args.to_station:
@@ -219,7 +235,9 @@ if __name__ == '__main__':
 
 	lirr = Lirr()
 
-	if args.stations:
-		lirr.get_stations()
+	if args.show_stations:
+		lirr.show_stations()
+	elif args.routes:
+		pass
 	else: 
 		print lirr.get_times(args.from_station, args.to_station)
