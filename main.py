@@ -1,5 +1,6 @@
 import argparse
 import requests
+import time
 from bs4 import BeautifulSoup
 
 class Lirr():
@@ -148,12 +149,13 @@ class Lirr():
 		payload = {
 			'FromStation': from_station,
 			'ToStation': to_station,
-			'RequestDate': '09/13/2013',
-			'RequestTime': '10:58',
-			'RequestAMPM': 'PM',
+			'RequestDate': time.strftime('%m/%d/%Y'),
+			'RequestTime': time.strftime('%I:%M'),
+			'RequestAMPM': time.strftime('%A'),
 			'sortBy': 1,
 			'schedules': 'Schedules'
 		}
+		print payload
 		r = requests.post('http://lirr42.mta.info/index.php', data=payload)
 
 		# Extract the departure, arrival times from response
