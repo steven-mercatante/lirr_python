@@ -155,7 +155,6 @@ class Lirr():
 			'sortBy': 1,
 			'schedules': 'Schedules'
 		}
-		print payload
 		r = requests.post('http://lirr42.mta.info/index.php', data=payload)
 
 		# Extract the departure, arrival times from response
