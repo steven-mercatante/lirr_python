@@ -2,6 +2,7 @@ import argparse
 import requests
 import time
 from bs4 import BeautifulSoup
+import sys
 
 # Todos:
 # catch and report invalid station combos
@@ -199,9 +200,20 @@ class Lirr():
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument('from_station', type=int)
-	parser.add_argument('to_station', type=int)
-	args = parser.parse_args()
+	parser.add_argument('-f', '--from', dest='from_station', type=int, 
+		help='The station to depart from')
+	parser.add_argument('-t', '--to', dest='to_station', type=int, 
+		help='The station to arrive at')
+	args = parser.parse_args()	
+
+	if args.from_station and not args.to_station:
+		parser.error('Please provide a destination station')
+
+	if args.to_station and not args.from_station:
+		parser.error('Please provide a departure station')
+
+	if (args.from_station and args.to_station) and (args.from_station == args.to_station):
+		parser.error('The departure and destination stations cannot be the same')
 
 	lirr = Lirr()
 	print lirr.get_times(args.from_station, args.to_station)
