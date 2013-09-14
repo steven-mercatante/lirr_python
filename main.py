@@ -146,12 +146,13 @@ class Lirr():
 		arrive_times = []
 
 		# Query LIRR for times
+		alt_time = self.get_altered_time()
 		payload = {
 			'FromStation': from_station,
 			'ToStation': to_station,
-			'RequestDate': time.strftime('%m/%d/%Y'),
-			'RequestTime': time.strftime('%I:%M'),
-			'RequestAMPM': time.strftime('%p'),
+			'RequestDate': time.strftime('%m/%d/%Y', alt_time),
+			'RequestTime': time.strftime('%I:%M', alt_time),
+			'RequestAMPM': time.strftime('%p', alt_time),
 			'sortBy': 1,
 			'schedules': 'Schedules'
 		}
@@ -169,6 +170,15 @@ class Lirr():
 				arrive_times.append(node.find(text=True))
 
 		return ' | '.join(depart_times)
+
+	def get_altered_time(self):
+		"""
+		LIRR always returns the previous two train times. I only want train
+		times in the future - by altering the time we send to their server,
+		we should get back future times only.
+		"""
+		t = time.time() + 3600
+		return time.localtime(t)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
