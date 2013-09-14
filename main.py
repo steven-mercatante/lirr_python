@@ -200,6 +200,8 @@ class Lirr():
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
+	parser.add_argument('-s', '--stations', action='store_true', default=False,
+		help='Shows list of stations')
 	parser.add_argument('-f', '--from', dest='from_station', type=int, 
 		help='The station to depart from')
 	parser.add_argument('-t', '--to', dest='to_station', type=int, 
@@ -216,4 +218,8 @@ if __name__ == '__main__':
 		parser.error('The departure and destination stations cannot be the same')
 
 	lirr = Lirr()
-	print lirr.get_times(args.from_station, args.to_station)
+
+	if args.stations:
+		lirr.get_stations()
+	else: 
+		print lirr.get_times(args.from_station, args.to_station)
