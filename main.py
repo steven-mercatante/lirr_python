@@ -139,9 +139,6 @@ class Lirr():
 			78: 'Yaphank'
 		}
 
-		self.routes_methods = ['list', 'add', 'del', 'def']
-
-
 	def show_stations(self):
 		"""
 		Prints list of LIRR train stations
@@ -200,17 +197,17 @@ class Lirr():
 		return time.localtime(t)
 
 class RouteManager():
-	def list():
-		pass
+	def list(self):
+		print 'list'
 
-	def add():
-		pass
+	def add(self, from_station, to_station):
+		print 'add from: %s, to: %s' % (from_station, to_station)
 
-	def delete():
-		pass
+	def delete(self, route_id):
+		print 'delete route_id: %s' % route_id 
 
-	def default():
-		pass
+	def default(self, route_id):
+		print 'default route_id: %s' % route_id
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -221,7 +218,10 @@ if __name__ == '__main__':
 		help='The station to depart from')
 	parser.add_argument('-t', '--to', dest='to_station', type=int, 
 		help='The station to arrive at')
-	parser.add_argument('--routes', default=False, nargs='+')
+	parser.add_argument('--list-routes', action='store_true', default=False)
+	parser.add_argument('--add-route', nargs=2)
+	parser.add_argument('--del-route', nargs=1)
+	parser.add_argument('--default-route', nargs=1)
 	args = parser.parse_args()	
 
 	if args.from_station and not args.to_station:
@@ -237,7 +237,17 @@ if __name__ == '__main__':
 
 	if args.show_stations:
 		lirr.show_stations()
-	elif args.routes:
-		pass
+	elif args.add_route:
+		m = RouteManager()
+		m.add(*args.add_route)
+	elif args.del_route:
+		m = RouteManager()
+		m.delete(*args.del_route)
+	elif args.default_route:
+		m = RouteManager()
+		m.default(*args.default_route)
+	elif args.list_routes:
+		m = RouteManager()
+		m.list()
 	else: 
 		print lirr.get_times(args.from_station, args.to_station)
