@@ -1,7 +1,10 @@
 import argparse
-import requests
 import time
 import sys
+import shelve
+import os
+from contextlib import closing
+import requests
 from bs4 import BeautifulSoup
 
 # Todos:
@@ -10,134 +13,133 @@ from bs4 import BeautifulSoup
 
 class Lirr():
 
-	def __init__(self):
-		self.stations = {
-			44: 'Albertson',
-			137: 'Amagansett',
-			115: 'Amityville',
-			12: 'Atlantic Terminal',
-			21: 'Auburndale',
-			118: 'Babylon',
-			107: 'Baldwin',
-			119: 'Bay Shore',
-			22: 'Bayside',
-			33: 'Bellerose',
-			110: 'Bellmore',
-			126: 'Bellport',
-			32: 'Belmont',
-			68: 'Bethpage',
-			73: 'Brentwood',
-			135: 'Bridgehampton',
-			20: 'Broadway',
-			54: 'Carle Place',
-			96: 'Cedarhurst',
-			74: 'Central Islip',
-			101: 'Centre Avenue',
-			59: 'Cold Spring Harbor',
-			116: 'Copiague',
-			38: 'Country Life Press',
-			72: 'Deer Park',
-			23: 'Douglaston',
-			136: 'East Hampton',
-			14: 'East New York',
-			102: 'East Rockaway',
-			43: 'East Williston',
-			99: 'Far Rockaway',
-			69: 'Farmingdale',
-			34: 'Floral Park',
-			18: 'Flushing Main Street',
-			10: 'Forest Hills',
-			108: 'Freeport',
-			37: 'Garden City',
-			93: 'Gibson',
-			50: 'Glen Cove',
-			47: 'Glen Head',
-			49: 'Glen Street',
-			25: 'Great Neck',
-			121: 'Great River',
-			61: 'Greenlawn',
-			82: 'Greenport',
-			46: 'Greenvale',
-			132: 'Hampton Bays',
-			39: 'Hempstead',
-			91: 'Hempstead Gardens',
-			94: 'Hewlett',
-			56: 'Hicksville',
-			30: 'Hollis',
-			2: 'Hunterspoint Avenue',
-			60: 'Huntington',
-			98: 'Inwood',
-			104: 'Island Park',
-			120: 'Islip',
-			15: 'Jamaica',
-			11: 'Kew Gardens',
-			63: 'Kings Park',
-			90: 'Lakeview',
-			85: 'Laurelton',
-			97: 'Lawrence',
-			117: 'Lindenhurst',
-			24: 'Little Neck',
-			84: 'Locust Manor',
-			51: 'Locust Valley',
-			105: 'Long Beach',
-			1: 'Long Island City',
-			100: 'Lynbrook',
-			89: 'Malverne',
-			26: 'Manhasset',
-			113: 'Massapequa',
-			114: 'Massapequa Park',
-			127: 'Mastic Shirley',
-			80: 'Mattituck',
-			508: 'Meadowlands',
-			77: 'Medford',
-			41: 'Merillon Avenue',
-			109: 'Merrick',
-			17: 'Mets-Willets Point',
-			42: 'Mineola',
-			138: 'Montauk',
-			19: 'Murray Hill',
-			36: 'Nassau Boulevard',
-			40: 'New Hyde Park',
-			62: 'Northport',
-			13: 'Nostrand Avenue',
-			122: 'Oakdale',
-			103: 'Oceanside',
-			53: 'Oyster Bay',
-			124: 'Patchogue',
-			8: 'Penn Station',
-			70: 'Pinelawn',
-			27: 'Plandome',
-			67: 'Port Jefferson',
-			28: 'Port Washington',
-			31: 'Queens Village',
-			79: 'Riverhead',
-			106: 'Rockville Centre',
-			75: 'Ronkonkoma',
-			86: 'Rosedale',
-			45: 'Roslyn',
-			123: 'Sayville',
-			48: 'Sea Cliff',
-			112: 'Seaford',
-			64: 'Smithtown',
-			134: 'Southampton',
-			81: 'Southold',
-			129: 'Speonk',
-			83: 'St. Albans',
-			65: 'St. James',
-			35: 'Stewart Manor',
-			66: 'Stony Brook',
-			58: 'Syosset',
-			87: 'Valley Stream',
-			111: 'Wantagh',
-			92: 'West Hempstead',
-			55: 'Westbury',
-			130: 'Westhampton',
-			88: 'Westwood',
-			95: 'Woodmere',
-			9: 'Woodside',
-			71: 'Wyandanch',
-			78: 'Yaphank'
-		}
+	stations = {
+		44: 'Albertson',
+		137: 'Amagansett',
+		115: 'Amityville',
+		12: 'Atlantic Terminal',
+		21: 'Auburndale',
+		118: 'Babylon',
+		107: 'Baldwin',
+		119: 'Bay Shore',
+		22: 'Bayside',
+		33: 'Bellerose',
+		110: 'Bellmore',
+		126: 'Bellport',
+		32: 'Belmont',
+		68: 'Bethpage',
+		73: 'Brentwood',
+		135: 'Bridgehampton',
+		20: 'Broadway',
+		54: 'Carle Place',
+		96: 'Cedarhurst',
+		74: 'Central Islip',
+		101: 'Centre Avenue',
+		59: 'Cold Spring Harbor',
+		116: 'Copiague',
+		38: 'Country Life Press',
+		72: 'Deer Park',
+		23: 'Douglaston',
+		136: 'East Hampton',
+		14: 'East New York',
+		102: 'East Rockaway',
+		43: 'East Williston',
+		99: 'Far Rockaway',
+		69: 'Farmingdale',
+		34: 'Floral Park',
+		18: 'Flushing Main Street',
+		10: 'Forest Hills',
+		108: 'Freeport',
+		37: 'Garden City',
+		93: 'Gibson',
+		50: 'Glen Cove',
+		47: 'Glen Head',
+		49: 'Glen Street',
+		25: 'Great Neck',
+		121: 'Great River',
+		61: 'Greenlawn',
+		82: 'Greenport',
+		46: 'Greenvale',
+		132: 'Hampton Bays',
+		39: 'Hempstead',
+		91: 'Hempstead Gardens',
+		94: 'Hewlett',
+		56: 'Hicksville',
+		30: 'Hollis',
+		2: 'Hunterspoint Avenue',
+		60: 'Huntington',
+		98: 'Inwood',
+		104: 'Island Park',
+		120: 'Islip',
+		15: 'Jamaica',
+		11: 'Kew Gardens',
+		63: 'Kings Park',
+		90: 'Lakeview',
+		85: 'Laurelton',
+		97: 'Lawrence',
+		117: 'Lindenhurst',
+		24: 'Little Neck',
+		84: 'Locust Manor',
+		51: 'Locust Valley',
+		105: 'Long Beach',
+		1: 'Long Island City',
+		100: 'Lynbrook',
+		89: 'Malverne',
+		26: 'Manhasset',
+		113: 'Massapequa',
+		114: 'Massapequa Park',
+		127: 'Mastic Shirley',
+		80: 'Mattituck',
+		508: 'Meadowlands',
+		77: 'Medford',
+		41: 'Merillon Avenue',
+		109: 'Merrick',
+		17: 'Mets-Willets Point',
+		42: 'Mineola',
+		138: 'Montauk',
+		19: 'Murray Hill',
+		36: 'Nassau Boulevard',
+		40: 'New Hyde Park',
+		62: 'Northport',
+		13: 'Nostrand Avenue',
+		122: 'Oakdale',
+		103: 'Oceanside',
+		53: 'Oyster Bay',
+		124: 'Patchogue',
+		8: 'Penn Station',
+		70: 'Pinelawn',
+		27: 'Plandome',
+		67: 'Port Jefferson',
+		28: 'Port Washington',
+		31: 'Queens Village',
+		79: 'Riverhead',
+		106: 'Rockville Centre',
+		75: 'Ronkonkoma',
+		86: 'Rosedale',
+		45: 'Roslyn',
+		123: 'Sayville',
+		48: 'Sea Cliff',
+		112: 'Seaford',
+		64: 'Smithtown',
+		134: 'Southampton',
+		81: 'Southold',
+		129: 'Speonk',
+		83: 'St. Albans',
+		65: 'St. James',
+		35: 'Stewart Manor',
+		66: 'Stony Brook',
+		58: 'Syosset',
+		87: 'Valley Stream',
+		111: 'Wantagh',
+		92: 'West Hempstead',
+		55: 'Westbury',
+		130: 'Westhampton',
+		88: 'Westwood',
+		95: 'Woodmere',
+		9: 'Woodside',
+		71: 'Wyandanch',
+		78: 'Yaphank'
+	}
 
 	def show_stations(self):
 		"""
@@ -197,17 +199,50 @@ class Lirr():
 		return time.localtime(t)
 
 class RouteManager():
-	def list(self):
-		print 'list'
 
-	def add(self, from_station, to_station):
-		print 'add from: %s, to: %s' % (from_station, to_station)
+	DB_NAME = 'lirr_python_routes.db'
+
+	def list(self):
+		with closing(shelve.open(self.DB_NAME)) as db:
+			routes = db.get('routes')
+			if routes:
+				# Convert keys from str to int
+				routes = {int(k):v for k, v in routes.iteritems()}
+				# Display items sorted by int key
+				for i in sorted(routes):
+					print '%s: %s to %s' % (i, Lirr.stations[routes[i][0]], 
+						Lirr.stations[routes[i][1]])
+			else:
+				print "You haven't added any routes yet. Add one with --add-route <from_station_id> <to_station_id>"
+
+	def add(self, from_station_id, to_station_id):
+		with closing(shelve.open(self.DB_NAME, writeback=True)) as db:
+			if not db.get('routes'):
+				db['routes'] = {}
+			route_id = len(db['routes']) + 1
+			db['routes'][route_id] = (from_station_id, to_station_id)
 
 	def delete(self, route_id):
-		print 'delete route_id: %s' % route_id 
+		with closing(shelve.open(self.DB_NAME)) as db:
+			del(db[str(route_id)])
 
-	def default(self, route_id):
-		print 'default route_id: %s' % route_id
+	def delete_all(self):
+		os.remove(self.DB_NAME)
+
+	def default(self, from_station_id, to_station_id):
+		with closing(shelve.open(self.DB_NAME)) as db:
+			db['default_route'] = (from_station_id, to_station_id)
+
+	def get_default(self, return_ids=False):
+		with closing(shelve.open(self.DB_NAME)) as db:
+			if db.get('default_route'):
+				from_station_id, to_station_id = db['default_route']
+				if return_ids:
+					return (int(from_station_id), int(to_station_id))
+				return '%s to %s' % (Lirr.stations[int(from_station_id)], 
+					Lirr.stations[int(to_station_id)])
+			else:
+				return "You haven't defined a default route yet. Set it with --default-route <from_station_id> <to_station_id>"
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -221,7 +256,8 @@ if __name__ == '__main__':
 	parser.add_argument('--list-routes', action='store_true', default=False)
 	parser.add_argument('--add-route', nargs=2)
 	parser.add_argument('--del-route', nargs=1)
-	parser.add_argument('--default-route', nargs=1)
+	parser.add_argument('--default-route', nargs=2)
+	parser.add_argument('--get-default-route', action='store_true', default=False)
 	args = parser.parse_args()	
 
 	if args.from_station and not args.to_station:
@@ -249,5 +285,15 @@ if __name__ == '__main__':
 	elif args.list_routes:
 		m = RouteManager()
 		m.list()
-	else: 
+	elif args.get_default_route:
+		m = RouteManager()
+		print m.get_default()
+	elif args.from_station and args.to_station:
 		print lirr.get_times(args.from_station, args.to_station)
+	else: 
+		m = RouteManager()
+		default_ids = m.get_default(True)
+		if not isinstance(default_ids, tuple):
+			parser.error(default_ids)
+		print lirr.get_times(*default_ids)
+
